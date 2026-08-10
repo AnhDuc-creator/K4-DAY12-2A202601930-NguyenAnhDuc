@@ -1,8 +1,7 @@
 """CP1 — Structured logging.
 
-`print("client abc hỏi gì đó")` là log cho người đọc. Cloud (Railway, Render,
-Cloud Run, Datadog...) đọc log bằng máy: một dòng = một JSON object thì mới
-lọc/đếm/cảnh báo được. Đây là khác biệt lớn giữa localhost và production.
+Cloud (Railway, Render, Cloud Run, Datadog...) đọc log bằng máy: một dòng =
+một JSON object thì mới lọc/đếm/cảnh báo được.
 """
 
 from __future__ import annotations
@@ -18,21 +17,14 @@ def utc_now_iso() -> str:
 
 
 def emit(event: str, severity: str = "INFO", **fields) -> str:
-    """Ghi một dòng log JSON ra stdout.
+    """Ghi một dòng log JSON ra stdout và trả về chính chuỗi đó."""
+    payload = {
+        "event": event,
+        "severity": severity.upper(),
+        "ts": utc_now_iso(),
+    }
+    payload.update(fields)
 
-    TODO (CP1): tạo dict gồm tối thiểu 3 khóa
-        - "event"    : tên sự kiện, lấy từ tham số ``event``
-        - "severity" : mức log, VIẾT HOA (dùng ``severity.upper()``) — đây là
-                       tên khóa mà Google Cloud Logging hiểu để tô màu và lọc
-        - "ts"       : ``utc_now_iso()``
-    rồi gộp thêm mọi cặp key/value trong ``**fields``.
-
-    In chuỗi JSON đó ra stdout **trên một dòng duy nhất**
-    (``json.dumps(..., ensure_ascii=False)``, đừng dùng ``indent``) và
-    trả về chính chuỗi đó.
-
-    Ví dụ:
-        >>> emit("chat_completed", client_id="sv01", usd_cost=0.0001)
-        '{"event": "chat_completed", "severity": "INFO", "ts": "...", ...}'
-    """
-    raise NotImplementedError("TODO (CP1): cài đặt emit")
+    line = json.dumps(payload, ensure_ascii=False)
+    print(line, file=sys.stdout, flush=True)
+    return line
